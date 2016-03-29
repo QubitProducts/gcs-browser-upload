@@ -7,17 +7,18 @@ import {
   UrlNotFoundError,
   UploadFailedError,
   UnknownResponseError,
-  MissingOptionsError
+  MissingOptionsError,
+  UploadIncompleteError
 } from './errors'
 
 function Upload (args) {
   var opts = {
     chunkSize: 3e+7, // 30MB
-    storage: localStorage,
+    storage: window.localStorage,
     contentType: '',
     id: null,
     url: null,
-    file: null
+    file: null,
     ...args
   }
 
@@ -58,7 +59,7 @@ Upload.prototype.start = async function () {
     }
     const res = await put(opts.url, chunk, { headers })
     checkResponseStatus(res.status, opts, [200, 201, 308])
-    meta.addChecksum(index, checksum);
+    meta.addChecksum(index, checksum)
   }
 
   const validateChunk = async (checksum, index) => {
@@ -103,12 +104,12 @@ Upload.prototype.cancel = function () {
   this.meta.reset()
 }
 
-function checkResponseStatus(status, opts, allowed = []) {
+function checkResponseStatus (status, opts, allowed = []) {
   if (allowed.indexOf(status) > -1) {
     return true
   }
 
-  switch (res.status) {
+  switch (status) {
     case 308:
       throw new UploadIncompleteError()
 
@@ -123,10 +124,10 @@ function checkResponseStatus(status, opts, allowed = []) {
     case 502:
     case 503:
     case 504:
-      throw new UploadFailedError(res.status)
+      throw new UploadFailedError(status)
 
     default:
-      throw new UnknownResponseError(res.status)
+      throw new UnknownResponseError(status)
   }
 }
 

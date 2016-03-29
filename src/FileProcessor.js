@@ -11,7 +11,7 @@ function FileProcessor (file, chunkSize) {
 FileProcessor.prototype.run = async function (fn, startIndex = 0, endIndex) {
   const { file, chunkSize } = this
   const totalChunks = Math.ceil(file.size / chunkSize)
-  let spark = new SparkMD5.ArrayBuffer();
+  let spark = new SparkMD5.ArrayBuffer()
 
   const processIndex = async (index) => {
     if (index === totalChunks - 1 || index === endIndex) {

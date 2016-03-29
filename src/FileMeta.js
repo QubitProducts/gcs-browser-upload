@@ -3,7 +3,7 @@ const STORAGE_KEY = '__gcsBrowserUpload'
 function FileMeta (id, chunkSize, storage) {
   this.id = id
   this.chunkSize = chunkSize
-  this.localStorage = localStorage
+  this.storage = storage
 }
 
 FileMeta.prototype.getMeta = function () {
@@ -17,7 +17,6 @@ FileMeta.prototype.getMeta = function () {
       started: false
     }
   }
-  return meta ? JSON.parse(meta) : null
 }
 
 FileMeta.prototype.setMeta = function (meta) {

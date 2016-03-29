@@ -15,5 +15,36 @@
   "bugs": {
     "url": "https://github.com/qubitdigital/gcs-browser-upload/issues"
   },
-  "homepage": "https://github.com/qubitdigital/gcs-browser-upload#readme"
+  "homepage": "https://github.com/qubitdigital/gcs-browser-upload#readme",
+  "devDependencies": {
+    "babel-eslint": "^6.0.0",
+    "eslint": "^2.5.3",
+    "eslint-plugin-babel": "^3.1.0",
+    "standard": "^6.0.8"
+  },
+  "dependencies": {
+    "axios": "^0.9.1",
+    "es6-error": "^2.1.0",
+    "es6-promise": "^3.1.2",
+    "spark-md5": "^2.0.2"
+  },
+  "standard": {
+    "parser": "babel-eslint",
+    "global": [
+      "describe",
+      "it",
+      "beforeEach",
+      "afterEach",
+      "before",
+      "after",
+      "FileReader"
+    ],
+    "plugins": [
+      "babel"
+    ],
+    "rules": {
+      "arrow-parens": 0,
+      "babel/arrow-parens": 1
+    }
+  }
 }
