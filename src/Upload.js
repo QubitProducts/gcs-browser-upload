@@ -111,7 +111,7 @@ export default class Upload {
       checkResponseStatus(res.status, opts, [308])
       const header = res.headers['range']
       debug(`Received upload status from GCS: ${header}`)
-      const range = header.match(/^(\d+?)-(\d+?)$/)
+      const range = header.match(/(\d+?)-(\d+?)$/)
       const bytesReceived = parseInt(range[2]) + 1
       return Math.floor(bytesReceived / opts.chunkSize)
     }

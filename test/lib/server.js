@@ -6,17 +6,36 @@ import bodyParser from 'body-parser'
 
 let server = null
 let requests = []
+let file = null
 const router = new express.Router()
 
-router.put('/simple', storeRequest, (req, res) => {
-  res.status(308).send('ok')
+router.use(bodyParser.text())
+
+router.use((req, res, next) => {
+  const range = req.headers['content-range']
+  const matchKnown = range.match(/^bytes (\d+?)-(\d+?)\/(\d+?)$/)
+  const matchUnknown = range.match(/^bytes \*\/(\d+?)$/)
+
+  if (matchUnknown) {
+    req.range = {
+      known: false,
+      total: matchUnknown[1]
+    }
+    next()
+  } else if (matchKnown) {
+    req.range = {
+      known: true,
+      start: matchKnown[1],
+      end: matchKnown[2],
+      total: matchKnown[3]
+    }
+    next()
+  } else {
+    res.status(400).send('No valid content-range header provided')
+  }
 })
 
-router.put('/pauseresume', storeRequest, (req, res) => {
-  res.set('range', '0-255').status(308).send('ok')
-})
-
-function storeRequest (req, res, next) {
+router.use((req, res, next) => {
   requests.push({
     method: req.method,
     url: req.originalUrl,
@@ -24,19 +43,38 @@ function storeRequest (req, res, next) {
     body: req.body
   })
   next()
-}
+})
+
+router.put('/', (req, res) => {
+  if (!file) {
+    file = {
+      total: req.range.total,
+      index: 0
+    }
+  }
+
+  if (req.range.known) {
+    file.index = req.range.end
+  }
+  res.set('range', `bytes=0-${file.index}`)
+  if (file.index + 1 === file.total) {
+    res.send(200).send('OK')
+  } else {
+    res.status(308).send('Resume Incomplete')
+  }
+})
 
 export async function start () {
   const port = await getPort()
   const app = express()
-  app.use(bodyParser.text())
-  app.use(router)
+  app.use('/file', router)
   server = await pify(::app.listen)(port)
   axios.defaults.baseURL = `http://localhost:${port}`
 }
 
-export function resetRequests () {
+export function resetServer () {
   requests = []
+  file = null
 }
 
 export function stop () {

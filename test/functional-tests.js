@@ -2,7 +2,7 @@ import localStorage from 'localStorage'
 import { expect } from 'chai'
 import randomString from 'random-string'
 import Upload from '../src/Upload'
-import { start, resetRequests, stop, getRequests } from './lib/server'
+import { start, resetServer, stop, getRequests } from './lib/server'
 import makeFile from './lib/makeFile'
 import waitFor from './lib/waitFor'
 
@@ -14,13 +14,13 @@ describe('Functional', () => {
   let file = null
   let requests = []
 
-  async function doUpload (url, length) {
+  async function doUpload (length) {
     if (length !== null) {
       file = randomString({ length })
     }
     upload = new Upload({
       id: 'foo',
-      url: url,
+      url: '/file',
       chunkSize: 256,
       file: makeFile(file)
     })
@@ -31,7 +31,7 @@ describe('Functional', () => {
 
   function reset () {
     localStorage.clear()
-    resetRequests()
+    resetServer()
     if (upload) {
       upload.cancel()
       upload = null
@@ -39,7 +39,7 @@ describe('Functional', () => {
   }
 
   describe('a single-chunk upload', () => {
-    before(() => doUpload('/simple', 256))
+    before(() => doUpload(256))
     after(reset)
 
     it('should only upload one chunk', () => {
@@ -48,7 +48,7 @@ describe('Functional', () => {
 
     it('should make a PUT request to the right URL', () => {
       expect(requests[0].method).to.equal('PUT')
-      expect(requests[0].url).to.equal('/simple')
+      expect(requests[0].url).to.equal('/file')
     })
 
     it('should send the correct headers', () => {
@@ -64,7 +64,7 @@ describe('Functional', () => {
   })
 
   describe('a multi-chunk upload', () => {
-    before(() => doUpload('/simple', 700))
+    before(() => doUpload(700))
     after(reset)
 
     it('should upload multiple chunks', () => {
@@ -74,7 +74,7 @@ describe('Functional', () => {
     it('should make multiple PUT requests to the right URL', () => {
       requests.forEach((request) => {
         expect(request.method).to.equal('PUT')
-        expect(request.url).to.equal('/simple')
+        expect(request.url).to.equal('/file')
       })
     })
 
@@ -111,7 +111,7 @@ describe('Functional', () => {
     after(reset)
 
     it('should stop uploading after being paused', async () => {
-      doUpload('/pauseresume', 500)
+      doUpload(500)
       upload.pause()
       await waitFor(() => {
         requests = getRequests()
@@ -122,21 +122,21 @@ describe('Functional', () => {
     })
 
     it('should check the server for status before resuming', async () => {
-      await doUpload('/pauseresume', null)
+      await doUpload(null)
       expect(requests[1].body).to.deep.equal({})
     })
 
     it('should send the rest of the chunks after being resumed', () => {
       expect(requests).to.have.length(3)
       expect(requests[2].body).to.equal(file.substring(256, 501))
-    });
+    })
   })
 
   describe('a paused upload that is resumed with a different file', () => {
     let firstFile = null
 
     before(async () => {
-      doUpload('/pauseresume', 500)
+      doUpload(500)
       firstFile = file
       upload.pause()
       await waitFor(() => getRequests().length > 0)
@@ -144,7 +144,7 @@ describe('Functional', () => {
     after(reset)
 
     it('should check the server for status before resuming', async () => {
-      await doUpload('/pauseresume', 500)
+      await doUpload(500)
       expect(requests[1].body).to.deep.equal({})
     })
 
