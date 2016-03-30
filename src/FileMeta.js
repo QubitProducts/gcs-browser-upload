@@ -21,7 +21,12 @@ class FileMeta {
   }
 
   setMeta (meta) {
-    this.storage.setItem(`${STORAGE_KEY}.${this.id}`, JSON.stringify(meta))
+    const key = `${STORAGE_KEY}.${this.id}`
+    if (meta) {
+      this.storage.setItem(key, JSON.stringify(meta))
+    } else {
+      this.storage.removeItem(key)
+    }
   }
 
   isResumable () {
@@ -45,7 +50,7 @@ class FileMeta {
   }
 
   reset () {
-    this.setMeta('')
+    this.setMeta(null)
   }
 }
 

@@ -1,6 +1,7 @@
 import { put } from 'axios'
 import FileMeta from './FileMeta'
 import FileProcessor from './FileProcessor'
+import debug from './debug'
 import {
   DifferentChunkError,
   FileAlreadyUploadedError,
@@ -16,12 +17,16 @@ class Upload {
     var opts = {
       chunkSize: 3e+7, // 30MB
       storage: window.localStorage,
-      contentType: '',
+      contentType: 'text/plain',
       id: null,
       url: null,
       file: null,
       ...args
     }
+
+    debug('Creating new upload instance:')
+    debug(` - Url: ${opts.url}`)
+    debug(` - Id: ${opts.id}`)
 
     if (!opts.id || !opts.url || !opts.file) {
       throw new MissingOptionsError()
@@ -40,26 +45,37 @@ class Upload {
       const remoteResumeIndex = await getRemoteResumeIndex()
 
       const resumeIndex = Math.min(localResumeIndex, remoteResumeIndex)
+      debug(`Validating chunks up to index ${resumeIndex}`)
       try {
         await processor.run(validateChunk, 0, resumeIndex)
       } catch (e) {
+        debug('Validation failed, starting from scratch')
         await processor.run(uploadChunk)
         return
       }
+      debug('Validation passed, resuming upload')
       await processor.run(uploadChunk, resumeIndex)
     }
 
     const uploadChunk = async (checksum, index, chunk) => {
       const total = opts.file.size
       const start = index * opts.chunkSize
-      const end = index * opts.chunkSize + chunk.length
+      const end = index * opts.chunkSize + chunk.byteLength
 
       const headers = {
-        'Content-Length': chunk.length,
+        'Content-Length': chunk.byteLength,
+        'Content-Type': opts.contentType,
         'Content-Range': `bytes ${start}-${end}/${total}`
       }
+
+      debug(`Uploading chunk ${index}:`)
+      debug(` - Chunk length: ${chunk.byteLength}`)
+      debug(` - Start: ${start}`)
+      debug(` - End: ${end}`)
+
       const res = await put(opts.url, chunk, { headers })
       checkResponseStatus(res.status, opts, [200, 201, 308])
+      debug(`Chunk upload succeeded, adding checksum ${checksum}`)
       meta.addChecksum(index, checksum)
     }
 
@@ -76,19 +92,24 @@ class Upload {
         'Content-Length': 0,
         'Content-Range': `bytes */${opts.file.size}`
       }
+      debug('Retrieving upload status from GCS'. headers)
       const res = await put(opts.url, null, { headers })
 
       checkResponseStatus(res.status, opts, [308])
       const header = res.headers.get('Content-Range')
+      debug(`Received upload status from GCS: ${header}`)
       const range = header.match(/^(\d+?)-(\d+?)$/)
       return Math.floor(range[1] / opts.chunkSize)
     }
 
     if (meta.isResumable()) {
+      debug('Upload might be resumable')
       await resumeUpload()
     } else {
+      debug('Upload not resumable, starting from scratch')
       await processor.run(uploadChunk)
     }
+    debug('Upload complete, resetting meta')
     meta.reset()
   }
 

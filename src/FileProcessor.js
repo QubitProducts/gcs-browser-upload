@@ -1,5 +1,6 @@
 import { Promise } from 'es6-promise'
 import SparkMD5 from 'spark-md5'
+import debug from './debug'
 
 class FileProcessor {
   constructor (file, chunkSize) {
@@ -14,22 +15,30 @@ class FileProcessor {
     const totalChunks = Math.ceil(file.size / chunkSize)
     let spark = new SparkMD5.ArrayBuffer()
 
+    debug('Starting run on file:')
+    debug(` - Chunk size: ${chunkSize}`)
+    debug(` - File size: ${file.size}`)
+    debug(` - Total chunks: ${totalChunks}`)
+    debug(` - Start index: ${startIndex}`)
+    debug(` - End index: ${endIndex || totalChunks}`)
+
     const processIndex = async (index) => {
-      if (index === totalChunks - 1 || index === endIndex) {
+      if (index === totalChunks || index === endIndex) {
+        debug('File process complete')
         return
       }
       if (this.paused) {
         await waitForUnpause()
       }
 
-      const start = startIndex * chunkSize
+      const start = index * chunkSize
       const section = file.slice(start, start + chunkSize)
       const chunk = await getData(file, section)
       const checksum = getChecksum(spark, chunk)
 
       const shouldContinue = await fn(checksum, index, chunk)
       if (shouldContinue !== false) {
-        processIndex(index + 1)
+        await processIndex(index + 1)
       }
     }
 
@@ -39,7 +48,7 @@ class FileProcessor {
       })
     }
 
-    processIndex(startIndex)
+    await processIndex(startIndex)
   }
 
   pause () {
@@ -63,7 +72,7 @@ function getChecksum (spark, chunk) {
 
 async function getData (file, blob) {
   return new Promise((resolve, reject) => {
-    let reader = new FileReader()
+    let reader = new window.FileReader()
     reader.onload = () => resolve(reader.result)
     reader.onerror = reject
     reader.readAsArrayBuffer(blob)
