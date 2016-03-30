@@ -16,8 +16,6 @@ class FileProcessor {
     let spark = new SparkMD5.ArrayBuffer()
 
     debug('Starting run on file:')
-    debug(` - Chunk size: ${chunkSize}`)
-    debug(` - File size: ${file.size}`)
     debug(` - Total chunks: ${totalChunks}`)
     debug(` - Start index: ${startIndex}`)
     debug(` - End index: ${endIndex || totalChunks}`)

@@ -10,3 +10,8 @@ global.window = {
 
 chai.use(require('sinon-chai'))
 chai.use(require('chai-as-promised'))
+chai.use(require('chai-subset'))
+
+process.on('unhandledRejection', function (err) {
+  throw err
+})

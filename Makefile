@@ -7,11 +7,8 @@ TESTS = $(shell find ./test -type f -name '*-test.js')
 lint:
 	@$(BIN)/standard
 
-test: lint generate-fixtures
+test: lint
 	@NODE_ENV=test $(BIN)/mocha $(TESTS)
 
-test-watch: generate-fixtures
-	@NODE_ENV=test DEBUG=gcs-browser-upload $(BIN)/mocha -w $(TESTS)
-
-generate-fixtures:
-	$(SCRIPTS)/generateFixtures.js
+test-watch:
+	@NODE_ENV=test $(BIN)/mocha -w $(TESTS)

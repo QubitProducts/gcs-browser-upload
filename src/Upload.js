@@ -9,13 +9,14 @@ import {
   UploadFailedError,
   UnknownResponseError,
   MissingOptionsError,
-  UploadIncompleteError
+  UploadIncompleteError,
+  InvalidChunkSizeError
 } from './errors'
 
 class Upload {
   constructor (args) {
     var opts = {
-      chunkSize: 3e+7, // 30MB
+      chunkSize: 29999872, // 30MB (to nearest 256)
       storage: window.localStorage,
       contentType: 'text/plain',
       id: null,
@@ -27,6 +28,12 @@ class Upload {
     debug('Creating new upload instance:')
     debug(` - Url: ${opts.url}`)
     debug(` - Id: ${opts.id}`)
+    debug(` - File size: ${opts.file.size}`)
+    debug(` - Chunk size: ${opts.chunkSize}`)
+
+    if (opts.chunkSize % 256 !== 0) {
+      throw new InvalidChunkSizeError(opts.chunkSize)
+    }
 
     if (!opts.id || !opts.url || !opts.file) {
       throw new MissingOptionsError()
@@ -46,6 +53,9 @@ class Upload {
 
       const resumeIndex = Math.min(localResumeIndex, remoteResumeIndex)
       debug(`Validating chunks up to index ${resumeIndex}`)
+      debug(` - Remote index: ${remoteResumeIndex}`)
+      debug(` - Local index: ${localResumeIndex}`)
+
       try {
         await processor.run(validateChunk, 0, resumeIndex)
       } catch (e) {
@@ -53,6 +63,7 @@ class Upload {
         await processor.run(uploadChunk)
         return
       }
+
       debug('Validation passed, resuming upload')
       await processor.run(uploadChunk, resumeIndex)
     }
@@ -60,10 +71,9 @@ class Upload {
     const uploadChunk = async (checksum, index, chunk) => {
       const total = opts.file.size
       const start = index * opts.chunkSize
-      const end = index * opts.chunkSize + chunk.byteLength
+      const end = index * opts.chunkSize + chunk.byteLength - 1
 
       const headers = {
-        'Content-Length': chunk.byteLength,
         'Content-Type': opts.contentType,
         'Content-Range': `bytes ${start}-${end}/${total}`
       }
@@ -73,7 +83,7 @@ class Upload {
       debug(` - Start: ${start}`)
       debug(` - End: ${end}`)
 
-      const res = await put(opts.url, chunk, { headers })
+      const res = await safePut(opts.url, chunk, { headers })
       checkResponseStatus(res.status, opts, [200, 201, 308])
       debug(`Chunk upload succeeded, adding checksum ${checksum}`)
       meta.addChecksum(index, checksum)
@@ -92,14 +102,15 @@ class Upload {
         'Content-Length': 0,
         'Content-Range': `bytes */${opts.file.size}`
       }
-      debug('Retrieving upload status from GCS'. headers)
-      const res = await put(opts.url, null, { headers })
+      debug('Retrieving upload status from GCS')
+      const res = await safePut(opts.url, null, { headers })
 
       checkResponseStatus(res.status, opts, [308])
-      const header = res.headers.get('Content-Range')
+      const header = res.headers['range']
       debug(`Received upload status from GCS: ${header}`)
       const range = header.match(/^(\d+?)-(\d+?)$/)
-      return Math.floor(range[1] / opts.chunkSize)
+      const bytesReceived = parseInt(range[2]) + 1
+      return Math.floor(bytesReceived / opts.chunkSize)
     }
 
     if (meta.isResumable()) {
@@ -115,15 +126,18 @@ class Upload {
 
   pause () {
     this.processor.pause()
+    debug('Upload paused')
   }
 
   unpause () {
     this.processor.unpause()
+    debug('Upload unpaused')
   }
 
   cancel () {
     this.processor.pause()
     this.meta.reset()
+    debug('Upload cancelled')
   }
 }
 
@@ -151,6 +165,18 @@ function checkResponseStatus (status, opts, allowed = []) {
 
     default:
       throw new UnknownResponseError(status)
+  }
+}
+
+async function safePut () {
+  try {
+    return await put.apply(null, arguments)
+  } catch (e) {
+    if (e instanceof Error) {
+      throw e
+    } else {
+      return e
+    }
   }
 }
 

@@ -1,17 +1,8 @@
-import fs from 'fs'
-import { resolve } from 'path'
-
-export default function makeFile (fileName, start = 0, end) {
-  const path = resolve(__dirname, '..', 'fixtures', fileName + '.csv')
-  const fileSize = fs.statSync(path).size
-  if (end === undefined || end > fileSize) {
-    end = fileSize
-  }
-
+export default function makeFile (data) {
   return {
-    size: end - start,
+    size: data.length,
     name: 'foo',
-    stream: fs.createReadStream(path, { start, end: end - 1 }),
-    slice: (start, end) => makeFile(fileName, start, end)
+    buffer: new Buffer(data),
+    slice: (start, end) => makeFile(data.substring(start, end))
   }
 }

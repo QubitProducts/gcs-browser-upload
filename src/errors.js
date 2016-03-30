@@ -41,3 +41,9 @@ export class UploadIncompleteError extends ExtendableError {
     super('Upload is not complete')
   }
 }
+
+export class InvalidChunkSizeError extends ExtendableError {
+  constructor (chunkSize) {
+    super(`Invalid chunk size ${chunkSize}, must be a multiple of 256`)
+  }
+}
