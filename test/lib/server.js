@@ -9,7 +9,7 @@ let requests = []
 const router = new express.Router()
 
 router.put('/simple', storeRequest, (req, res) => {
-  res.send('ok')
+  res.status(308).send('ok')
 })
 
 router.put('/pauseresume', storeRequest, (req, res) => {
@@ -35,7 +35,7 @@ export async function start () {
   axios.defaults.baseURL = `http://localhost:${port}`
 }
 
-export function reset () {
+export function resetRequests () {
   requests = []
 }
 

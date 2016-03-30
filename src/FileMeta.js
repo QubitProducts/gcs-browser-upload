@@ -1,6 +1,6 @@
 const STORAGE_KEY = '__gcsBrowserUpload'
 
-class FileMeta {
+export default class FileMeta {
   constructor (id, chunkSize, storage) {
     this.id = id
     this.chunkSize = chunkSize
@@ -53,5 +53,3 @@ class FileMeta {
     this.setMeta(null)
   }
 }
-
-export default FileMeta

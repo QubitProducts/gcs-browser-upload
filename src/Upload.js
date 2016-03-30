@@ -12,8 +12,11 @@ import {
   UploadIncompleteError,
   InvalidChunkSizeError
 } from './errors'
+import errors from './errors'
 
-class Upload {
+export default class Upload {
+  static errors = errors;
+
   constructor (args) {
     var opts = {
       chunkSize: 29999872, // 30MB (to nearest 256)
@@ -179,5 +182,3 @@ async function safePut () {
     }
   }
 }
-
-export default Upload
