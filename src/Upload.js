@@ -12,7 +12,7 @@ import {
   UploadIncompleteError,
   InvalidChunkSizeError
 } from './errors'
-import errors from './errors'
+import * as errors from './errors'
 
 export default class Upload {
   static errors = errors;
@@ -22,6 +22,7 @@ export default class Upload {
       chunkSize: 29999872, // 30MB (to nearest 256)
       storage: window.localStorage,
       contentType: 'text/plain',
+      onChunkUpload: () => {},
       id: null,
       url: null,
       file: null,
@@ -43,7 +44,7 @@ export default class Upload {
     }
 
     this.opts = opts
-    this.meta = new FileMeta(opts.id, opts.chunkSize, opts.storage)
+    this.meta = new FileMeta(opts.id, opts.file.size, opts.chunkSize, opts.storage)
     this.processor = new FileProcessor(opts.file, opts.chunkSize)
   }
 
@@ -90,6 +91,12 @@ export default class Upload {
       checkResponseStatus(res.status, opts, [200, 201, 308])
       debug(`Chunk upload succeeded, adding checksum ${checksum}`)
       meta.addChecksum(index, checksum)
+
+      opts.onChunkUpload({
+        total,
+        uploaded: end + 1,
+        chunkLength: chunk.byteLength
+      })
     }
 
     const validateChunk = async (checksum, index) => {
@@ -116,7 +123,7 @@ export default class Upload {
       return Math.floor(bytesReceived / opts.chunkSize)
     }
 
-    if (meta.isResumable()) {
+    if (meta.isResumable() && meta.getFileSize() === opts.file.size) {
       debug('Upload might be resumable')
       await resumeUpload()
     } else {

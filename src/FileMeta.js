@@ -1,8 +1,9 @@
 const STORAGE_KEY = '__gcsBrowserUpload'
 
 export default class FileMeta {
-  constructor (id, chunkSize, storage) {
+  constructor (id, fileSize, chunkSize, storage) {
     this.id = id
+    this.fileSize = fileSize
     this.chunkSize = chunkSize
     this.storage = storage
   }
@@ -15,7 +16,8 @@ export default class FileMeta {
       return {
         checksums: [],
         chunkSize: this.chunkSize,
-        started: false
+        started: false,
+        fileSize: this.fileSize
       }
     }
   }
@@ -36,6 +38,10 @@ export default class FileMeta {
 
   getResumeIndex () {
     return this.getMeta().checksums.length
+  }
+
+  getFileSize () {
+    return this.getMeta().fileSize
   }
 
   addChecksum (index, checksum) {

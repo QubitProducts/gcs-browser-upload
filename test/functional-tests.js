@@ -14,13 +14,13 @@ describe('Functional', () => {
   let file = null
   let requests = []
 
-  async function doUpload (length) {
+  async function doUpload (length, url) {
     if (length !== null) {
       file = randomString({ length })
     }
     upload = new Upload({
       id: 'foo',
-      url: '/file',
+      url: url || '/file',
       chunkSize: 256,
       file: makeFile(file)
     })
@@ -157,6 +157,18 @@ describe('Functional', () => {
       expect(requests).to.have.length(4)
       expect(requests[2].body).to.equal(file.substring(0, 256))
       expect(requests[3].body).to.equal(file.substring(256, 501))
+    })
+  })
+
+  describe('an upload to a url that doesn\'t exist', () => {
+    it('should throw a UrlNotFoundError', () => {
+      return expect(doUpload(200, '/notfound')).to.be.rejectedWith(Upload.errors.UrlNotFoundError)
+    })
+  })
+
+  describe('an upload that results in a server error', () => {
+    it('should throw an UploadFailedError', () => {
+      return expect(doUpload(200, '/file/fail')).to.be.rejectedWith(Upload.errors.UploadFailedError)
     })
   })
 })

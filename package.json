@@ -27,7 +27,6 @@
     "chai-as-promised": "^5.3.0",
     "chai-subset": "^1.2.2",
     "colors": "^1.1.2",
-    "debug": "^2.2.0",
     "eslint": "^2.5.3",
     "eslint-plugin-babel": "^3.1.0",
     "express": "^4.13.4",
@@ -44,6 +43,7 @@
   },
   "dependencies": {
     "axios": "^0.9.1",
+    "debug": "^2.2.0",
     "es6-error": "^2.1.0",
     "es6-promise": "^3.1.2",
     "spark-md5": "^2.0.2"

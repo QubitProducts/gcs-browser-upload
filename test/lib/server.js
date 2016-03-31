@@ -64,6 +64,10 @@ router.put('/', (req, res) => {
   }
 })
 
+router.put('/fail', (req, res) => {
+  res.status(500).send('Internal Server Error')
+})
+
 export async function start () {
   const port = await getPort()
   const app = express()
