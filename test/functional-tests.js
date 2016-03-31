@@ -23,7 +23,7 @@ describe('Functional', () => {
       url: url || '/file',
       chunkSize: 256,
       file: makeFile(file)
-    })
+    }, true)
     await upload.start()
     requests = getRequests()
     return upload

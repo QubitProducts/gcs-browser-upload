@@ -14,12 +14,15 @@ import {
 } from './errors'
 import * as errors from './errors'
 
+const MIN_CHUNK_SIZE = 262144
+const DEFAULT_CHUNK_SIZE = 29999872 // 30MB (to nearest 256)
+
 export default class Upload {
   static errors = errors;
 
-  constructor (args) {
+  constructor (args, allowSmallChunks) {
     var opts = {
-      chunkSize: 29999872, // 30MB (to nearest 256)
+      chunkSize: DEFAULT_CHUNK_SIZE,
       storage: window.localStorage,
       contentType: 'text/plain',
       onChunkUpload: () => {},
@@ -29,7 +32,7 @@ export default class Upload {
       ...args
     }
 
-    if (opts.chunkSize % 256 !== 0) {
+    if (opts.chunkSize % 256 !== 0 || (opts.chunkSize < MIN_CHUNK_SIZE && !allowSmallChunks) {
       throw new InvalidChunkSizeError(opts.chunkSize)
     }
 
