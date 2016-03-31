@@ -32,7 +32,7 @@ export default class Upload {
       ...args
     }
 
-    if (opts.chunkSize % 256 !== 0 || (opts.chunkSize < MIN_CHUNK_SIZE && !allowSmallChunks) {
+    if (opts.chunkSize % 256 !== 0 || (opts.chunkSize < MIN_CHUNK_SIZE && !allowSmallChunks)) {
       throw new InvalidChunkSizeError(opts.chunkSize)
     }
 
