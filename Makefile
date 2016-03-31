@@ -4,6 +4,9 @@ TESTS = $(shell find ./test -type f -name '*-test.js')
 
 .PHONY: lint test
 
+bootstrap:
+	@npm install
+
 lint:
 	@$(BIN)/standard
 

@@ -10,7 +10,8 @@ import {
   UnknownResponseError,
   MissingOptionsError,
   UploadIncompleteError,
-  InvalidChunkSizeError
+  InvalidChunkSizeError,
+  UploadAlreadyFinishedError
 } from './errors'
 import * as errors from './errors'
 
@@ -51,7 +52,7 @@ export default class Upload {
   }
 
   async start () {
-    const { meta, processor, opts } = this
+    const { meta, processor, opts, finished } = this
 
     const resumeUpload = async () => {
       const localResumeIndex = meta.getResumeIndex()
@@ -66,6 +67,10 @@ export default class Upload {
         await processor.run(validateChunk, 0, resumeIndex)
       } catch (e) {
         debug('Validation failed, starting from scratch')
+        debug(` - Failed chunk index: ${e.chunkIndex}`)
+        debug(` - Old checksum: ${e.originalChecksum}`)
+        debug(` - New checksum: ${e.newChecksum}`)
+
         await processor.run(uploadChunk)
         return
       }
@@ -95,17 +100,19 @@ export default class Upload {
       meta.addChecksum(index, checksum)
 
       opts.onChunkUpload({
-        total,
-        uploaded: end + 1,
+        totalBytes: total,
+        uploadedBytes: end + 1,
+        chunkIndex: index,
         chunkLength: chunk.byteLength
       })
     }
 
-    const validateChunk = async (checksum, index) => {
-      const isChunkValid = checksum === meta.getChecksum(index)
+    const validateChunk = async (newChecksum, index) => {
+      const originalChecksum = meta.getChecksum(index)
+      const isChunkValid = originalChecksum === newChecksum
       if (!isChunkValid) {
         meta.reset()
-        throw new DifferentChunkError(index)
+        throw new DifferentChunkError(index, originalChecksum, newChecksum)
       }
     }
 
@@ -124,6 +131,10 @@ export default class Upload {
       return Math.floor(bytesReceived / opts.chunkSize)
     }
 
+    if (finished) {
+      throw new UploadAlreadyFinishedError()
+    }
+
     if (meta.isResumable() && meta.getFileSize() === opts.file.size) {
       debug('Upload might be resumable')
       await resumeUpload()
@@ -133,6 +144,7 @@ export default class Upload {
     }
     debug('Upload complete, resetting meta')
     meta.reset()
+    this.finished = true
   }
 
   pause () {

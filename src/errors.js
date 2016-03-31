@@ -1,8 +1,11 @@
 import ExtendableError from 'es6-error'
 
 export class DifferentChunkError extends ExtendableError {
-  constructor (chunkIndex) {
+  constructor (chunkIndex, originalChecksum, newChecksum) {
     super(`Chunk at index '${chunkIndex}' is different to original`)
+    this.chunkIndex = chunkIndex
+    this.originalChecksum = original
+    this.newChecksum = newChecksum
   }
 }
 
@@ -46,5 +49,11 @@ export class UploadIncompleteError extends ExtendableError {
 export class InvalidChunkSizeError extends ExtendableError {
   constructor (chunkSize) {
     super(`Invalid chunk size ${chunkSize}, must be a multiple of 262144`)
+  }
+}
+
+export class UploadAlreadyFinishedError extends ExtendableError {
+  constructor () {
+    super(`Upload instance has already finished`)
   }
 }
