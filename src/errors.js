@@ -25,8 +25,9 @@ export class UploadFailedError extends ExtendableError {
 }
 
 export class UnknownResponseError extends ExtendableError {
-  constructor () {
+  constructor (res) {
     super('Unknown response received from GCS')
+    this.res = res
   }
 }
 

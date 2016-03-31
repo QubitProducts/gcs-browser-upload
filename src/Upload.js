@@ -29,12 +29,6 @@ export default class Upload {
       ...args
     }
 
-    debug('Creating new upload instance:')
-    debug(` - Url: ${opts.url}`)
-    debug(` - Id: ${opts.id}`)
-    debug(` - File size: ${opts.file.size}`)
-    debug(` - Chunk size: ${opts.chunkSize}`)
-
     if (opts.chunkSize % 256 !== 0) {
       throw new InvalidChunkSizeError(opts.chunkSize)
     }
@@ -42,6 +36,12 @@ export default class Upload {
     if (!opts.id || !opts.url || !opts.file) {
       throw new MissingOptionsError()
     }
+
+    debug('Creating new upload instance:')
+    debug(` - Url: ${opts.url}`)
+    debug(` - Id: ${opts.id}`)
+    debug(` - File size: ${opts.file.size}`)
+    debug(` - Chunk size: ${opts.chunkSize}`)
 
     this.opts = opts
     this.meta = new FileMeta(opts.id, opts.file.size, opts.chunkSize, opts.storage)
@@ -88,7 +88,7 @@ export default class Upload {
       debug(` - End: ${end}`)
 
       const res = await safePut(opts.url, chunk, { headers })
-      checkResponseStatus(res.status, opts, [200, 201, 308])
+      checkResponseStatus(res, opts, [200, 201, 308])
       debug(`Chunk upload succeeded, adding checksum ${checksum}`)
       meta.addChecksum(index, checksum)
 
@@ -115,7 +115,7 @@ export default class Upload {
       debug('Retrieving upload status from GCS')
       const res = await safePut(opts.url, null, { headers })
 
-      checkResponseStatus(res.status, opts, [308])
+      checkResponseStatus(res, opts, [308])
       const header = res.headers['range']
       debug(`Received upload status from GCS: ${header}`)
       const range = header.match(/(\d+?)-(\d+?)$/)
@@ -151,7 +151,8 @@ export default class Upload {
   }
 }
 
-function checkResponseStatus (status, opts, allowed = []) {
+function checkResponseStatus (res, opts, allowed = []) {
+  const { status } = res
   if (allowed.indexOf(status) > -1) {
     return true
   }
@@ -174,7 +175,7 @@ function checkResponseStatus (status, opts, allowed = []) {
       throw new UploadFailedError(status)
 
     default:
-      throw new UnknownResponseError(status)
+      throw new UnknownResponseError(status, res)
   }
 }
 
