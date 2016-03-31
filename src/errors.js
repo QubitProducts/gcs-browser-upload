@@ -4,7 +4,7 @@ export class DifferentChunkError extends ExtendableError {
   constructor (chunkIndex, originalChecksum, newChecksum) {
     super(`Chunk at index '${chunkIndex}' is different to original`)
     this.chunkIndex = chunkIndex
-    this.originalChecksum = original
+    this.originalChecksum = originalChecksum
     this.newChecksum = newChecksum
   }
 }
@@ -54,6 +54,6 @@ export class InvalidChunkSizeError extends ExtendableError {
 
 export class UploadAlreadyFinishedError extends ExtendableError {
   constructor () {
-    super(`Upload instance has already finished`)
+    super('Upload instance has already finished')
   }
 }
