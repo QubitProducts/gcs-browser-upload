@@ -175,7 +175,7 @@ function checkResponseStatus (res, opts, allowed = []) {
       throw new UploadFailedError(status)
 
     default:
-      throw new UnknownResponseError(status, res)
+      throw new UnknownResponseError(res)
   }
 }
 
