@@ -15,14 +15,13 @@ import {
 import * as errors from './errors'
 
 const MIN_CHUNK_SIZE = 262144
-const DEFAULT_CHUNK_SIZE = 29999872 // 30MB (to nearest 256)
 
 export default class Upload {
   static errors = errors;
 
   constructor (args, allowSmallChunks) {
     var opts = {
-      chunkSize: DEFAULT_CHUNK_SIZE,
+      chunkSize: MIN_CHUNK_SIZE,
       storage: window.localStorage,
       contentType: 'text/plain',
       onChunkUpload: () => {},
@@ -32,7 +31,7 @@ export default class Upload {
       ...args
     }
 
-    if (opts.chunkSize % 256 !== 0 || (opts.chunkSize < MIN_CHUNK_SIZE && !allowSmallChunks)) {
+    if (opts.chunkSize % MIN_CHUNK_SIZE !== 0 || opts.chunkSize === 0) {
       throw new InvalidChunkSizeError(opts.chunkSize)
     }
 
@@ -112,7 +111,6 @@ export default class Upload {
 
     const getRemoteResumeIndex = async () => {
       const headers = {
-        'Content-Length': 0,
         'Content-Range': `bytes */${opts.file.size}`
       }
       debug('Retrieving upload status from GCS')
