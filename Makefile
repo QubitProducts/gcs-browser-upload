@@ -15,3 +15,6 @@ test: lint
 
 test-watch:
 	@NODE_ENV=test $(BIN)/mocha -w $(TESTS)
+
+compile:
+	NODE_ENV=production $(BIN)/babel src --out-dir dist --copy-files
