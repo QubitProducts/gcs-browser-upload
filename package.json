@@ -2,9 +2,11 @@
   "name": "gcs-browser-upload",
   "version": "1.0.0",
   "description": "Resumable, chunked uploads to Google Cloud Storage from the browser",
-  "main": "index.js",
+  "main": "dist/Upload.js",
   "scripts": {
-    "test": "make test"
+    "test": "make test",
+    "compile": "make compile",
+    "prepublish": "npm run compile"
   },
   "repository": {
     "type": "git",
@@ -17,6 +19,7 @@
   },
   "homepage": "https://github.com/qubitdigital/gcs-browser-upload#readme",
   "devDependencies": {
+    "babel-cli": "^6.14.0",
     "babel-core": "^6.7.4",
     "babel-eslint": "^6.0.0",
     "babel-polyfill": "^6.7.4",
@@ -48,6 +51,10 @@
     "es6-promise": "^3.1.2",
     "spark-md5": "^2.0.2"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "standard": {
     "parser": "babel-eslint",
     "global": [
