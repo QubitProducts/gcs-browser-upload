@@ -16,12 +16,14 @@ Chunked, pausable, recoverable uploading to Google Cloud Storage directly from t
 
 ## Example
 
+There is a full example available at `example/example-client`.
+
 ```js
 import Upload from 'gcs-browser-upload'
 
 let input = document.getElementById('fileInput')
-let pause = document.getElementbyId('pause')
-let unpause = document.getElementbyId('unpause')
+let pause = document.getElementById('pause')
+let unpause = document.getElementById('unpause')
 let upload = null
 
 input.addEventListener('change', async () => {
@@ -39,7 +41,7 @@ input.addEventListener('change', async () => {
     console.log('Upload complete!')
   } catch (e) {
     console.log('Upload failed!', e)
-  } finally () {
+  } finally {
     upload = null
   }
 })
@@ -62,7 +64,7 @@ unpause.addEventListener('click', () => {
 
 ```js
 {
-  id: null, // required - a unique ID for the upload 
+  id: null, // required - a unique ID for the upload
   url: null, // required - GCS resumable URL
   file: null, // required - instance of File
   chunkSize: 262144, // optional - chunk size must be a multiple of 262144
