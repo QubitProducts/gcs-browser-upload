@@ -73,6 +73,10 @@ unpause.addEventListener('click', () => {
 ```
 
 
+## Requirements
+
+This library requires `regeneratorRuntime` to be available globally - it is written in ES7 and makes use of async/await, which gets compiled into generators. You can find out about regenerator-runtime [here](https://www.npmjs.com/package/regenerator-runtime).
+
 ## Handling errors
 
 Various errors are thrown if something goes wrong during uploading. See [src/errors.js](https://github.com/qubitdigital/gcs-browser-upload/blob/master/src/errors.js) for the different types. These are exported as a property on the `Upload` class.
