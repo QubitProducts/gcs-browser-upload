@@ -49,6 +49,7 @@ export default class Upload {
     this.opts = opts
     this.meta = new FileMeta(opts.id, opts.file.size, opts.chunkSize, opts.storage)
     this.processor = new FileProcessor(opts.file, opts.chunkSize)
+    this.lastResult = null;
   }
 
   async start () {
