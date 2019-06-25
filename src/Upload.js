@@ -95,7 +95,7 @@ export default class Upload {
       debug(` - End: ${end}`)
 
       const res = await safePut(opts.url, chunk, { headers })
-      this.last_res = res;
+      this.lastResult = res;
       checkResponseStatus(res, opts, [200, 201, 308])
       debug(`Chunk upload succeeded, adding checksum ${checksum}`)
       meta.addChecksum(index, checksum)
@@ -146,7 +146,7 @@ export default class Upload {
     debug('Upload complete, resetting meta')
     meta.reset()
     this.finished = true
-    return this.last_res
+    return this.lastResult
   }
 
   pause () {
