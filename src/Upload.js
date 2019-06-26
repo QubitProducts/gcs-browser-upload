@@ -49,6 +49,7 @@ export default class Upload {
     this.opts = opts
     this.meta = new FileMeta(opts.id, opts.file.size, opts.chunkSize, opts.storage)
     this.processor = new FileProcessor(opts.file, opts.chunkSize)
+    this.lastResult = null;
   }
 
   async start () {
@@ -95,6 +96,7 @@ export default class Upload {
       debug(` - End: ${end}`)
 
       const res = await safePut(opts.url, chunk, { headers })
+      this.lastResult = res;
       checkResponseStatus(res, opts, [200, 201, 308])
       debug(`Chunk upload succeeded, adding checksum ${checksum}`)
       meta.addChecksum(index, checksum)
@@ -145,6 +147,7 @@ export default class Upload {
     debug('Upload complete, resetting meta')
     meta.reset()
     this.finished = true
+    return this.lastResult
   }
 
   pause () {
