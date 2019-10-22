@@ -1,0 +1,16 @@
+{
+  "extends": ["@cognite", "plugin:mocha/recommended"],
+  "plugins": ["mocha"],
+  "env": {
+    "jest": true
+  },
+  "overrides": [
+    {
+      "files": ["*-tests.js"],
+      "rules": {
+        "no-unused-expressions": 0,
+        "jest/valid-expect": 0
+      }
+    }
+  ]
+}

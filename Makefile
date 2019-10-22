@@ -2,15 +2,11 @@ BIN = ./node_modules/.bin
 SCRIPTS = ./scripts
 TESTS = $(shell find ./test -type f -name '*-test.js')
 
-.PHONY: lint test
 
 bootstrap:
 	@npm install
 
-lint:
-	@$(BIN)/standard
-
-test: lint
+test:
 	@NODE_ENV=test $(BIN)/mocha $(TESTS)
 
 test-watch:

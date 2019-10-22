@@ -1,17 +1,11 @@
-require('babel-core/register')
-require('babel-polyfill')
+require('babel-core/register');
+require('babel-polyfill');
+const chai = require('chai');
 
-var chai = require('chai')
+chai.use(require('sinon-chai'));
+chai.use(require('chai-as-promised'));
+chai.use(require('chai-subset'));
 
-global.window = {
-  FileReader: require('filereader'),
-  localStorage: require('localStorage')
-}
-
-chai.use(require('sinon-chai'))
-chai.use(require('chai-as-promised'))
-chai.use(require('chai-subset'))
-
-process.on('unhandledRejection', function (err) {
-  throw err
-})
+process.on('unhandledRejection', err => {
+  throw err;
+});

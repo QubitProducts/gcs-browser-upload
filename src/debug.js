@@ -1,3 +1,3 @@
-import debug from 'debug'
+import debug from 'debug';
 
-export default debug('gcs-browser-upload')
+export default debug('gcs-browser-upload');

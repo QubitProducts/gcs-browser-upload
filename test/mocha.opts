@@ -1,2 +1,1 @@
 --require ./test/setup.js
---timeout 50000
