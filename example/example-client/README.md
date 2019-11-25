@@ -43,6 +43,8 @@ What is happening is:
                                                                                   (Storage$SignUrlOption/httpMethod HttpMethod/PUT)]))))
 ```
 
+For Python you can use [google.cloud.storage.blob.Blob.create_resumable_upload_session](https://googleapis.dev/python/storage/latest/blobs.html#google.cloud.storage.blob.Blob.create_resumable_upload_session).
+
 ## Running
 
 Open `index.html`. Pick a file to upload. As soon as you pick the file, the upload will begin.
