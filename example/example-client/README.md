@@ -10,6 +10,10 @@ gsutil cors set cors-json-file.json gs://your-bucket-name
 
 `cors-json-file.json` is in this folder. You may need to tweak it depending on which HTTP methods you are wanting to call on GCS.
 
+Be aware that the `Origin` header for all requests must be the same.
+This means if the resumable upload is created on the server side the same origin as the one used by the browser needs to be passed.
+See the [documentation](https://cloud.google.com/storage/docs/json_api/v1/how-tos/resumable-upload#start-resumable) for details.
+
 You also need to run
 
 ```sh
@@ -44,6 +48,7 @@ What is happening is:
 ```
 
 For Python you can use [google.cloud.storage.blob.Blob.create_resumable_upload_session](https://googleapis.dev/python/storage/latest/blobs.html#google.cloud.storage.blob.Blob.create_resumable_upload_session).
+Make sure to pass the [origin]((https://cloud.google.com/storage/docs/json_api/v1/how-tos/resumable-upload#start-resumable) the browser will use as `origin` parameter.
 
 ## Running
 
