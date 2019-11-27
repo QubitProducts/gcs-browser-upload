@@ -61,13 +61,7 @@ class FileProcessor {
         return processIndex(index + 1);
       }
       return false;
-    }
-
-    const waitForUnpause = () => {
-      return new Promise((resolve) => {
-        this.unpauseHandlers.push(resolve);
-      })
-    }
+    };
 
     await processIndex(startIndex);
   }
