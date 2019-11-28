@@ -1,8 +1,11 @@
 {
-  "extends": ["@cognite", "plugin:mocha/recommended"],
+  "extends": ["airbnb", "plugin:mocha/recommended"],
   "plugins": ["mocha"],
+  "parser": "babel-eslint",
   "env": {
-    "jest": true
+    "jest": true,
+    "browser": true,
+    "node": true
   },
   "overrides": [
     {

@@ -62,8 +62,8 @@ export default class Upload {
     };
 
     if (
-      (opts.chunkSize % MIN_CHUNK_SIZE !== 0 || opts.chunkSize === 0) &&
-      !allowSmallChunks
+      (opts.chunkSize % MIN_CHUNK_SIZE !== 0 || opts.chunkSize === 0)
+      && !allowSmallChunks
     ) {
       throw new errors.InvalidChunkSizeError(opts.chunkSize);
     }
@@ -83,14 +83,16 @@ export default class Upload {
       opts.id,
       opts.file.size,
       opts.chunkSize,
-      opts.storage
+      opts.storage,
     );
     this.processor = new FileProcessor(opts.file, opts.chunkSize);
     this.lastResult = null;
   }
 
   async start() {
-    const { meta, processor, opts, finished } = this;
+    const {
+      meta, processor, opts, finished,
+    } = this;
 
     const getRemoteResumeIndex = async () => {
       const headers = {
@@ -118,7 +120,7 @@ export default class Upload {
         throw new errors.DifferentChunkError(
           index,
           originalChecksum,
-          newChecksum
+          newChecksum,
         );
       }
     };

@@ -26,11 +26,9 @@ class FileProcessor {
     this.unpauseHandlers = [];
   }
 
-  waitForUnpause = async () => {
-    return new Promise(resolve => {
-      this.unpauseHandlers.push(resolve);
-    });
-  };
+  waitForUnpause = async () => new Promise((resolve) => {
+    this.unpauseHandlers.push(resolve);
+  });
 
   async run(fn, startIndex = 0, endIndex) {
     const { file, chunkSize } = this;
@@ -42,7 +40,7 @@ class FileProcessor {
     debug(` - Start index: ${startIndex}`);
     debug(` - End index: ${endIndex || totalChunks}`);
 
-    const processIndex = async index => {
+    const processIndex = async (index) => {
       if (index === totalChunks || index === endIndex) {
         debug('File process complete');
         return true;
@@ -72,7 +70,7 @@ class FileProcessor {
 
   unpause() {
     this.paused = false;
-    this.unpauseHandlers.forEach(fn => fn());
+    this.unpauseHandlers.forEach((fn) => fn());
     this.unpauseHandlers = [];
   }
 }
