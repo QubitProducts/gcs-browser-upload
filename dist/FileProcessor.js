@@ -123,7 +123,7 @@ var FileProcessor = function () {
                             }
 
                             (0, _debug2.default)('File process complete');
-                            return _context3.abrupt('return');
+                            return _context3.abrupt('return', true);
 
                           case 3:
                             if (!_this2.paused) {
@@ -150,12 +150,14 @@ var FileProcessor = function () {
                             shouldContinue = _context3.sent;
 
                             if (!(shouldContinue !== false)) {
-                              _context3.next = 18;
+                              _context3.next = 17;
                               break;
                             }
 
-                            _context3.next = 18;
-                            return processIndex(index + 1);
+                            return _context3.abrupt('return', processIndex(index + 1));
+
+                          case 17:
+                            return _context3.abrupt('return', false);
 
                           case 18:
                           case 'end':
