@@ -1,85 +1,35 @@
-'use strict';
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var getData = function () {
-  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(file, blob) {
-    return regeneratorRuntime.wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            return _context.abrupt('return', new _es6Promise.Promise(function (resolve, reject) {
-              var reader = new window.FileReader();
-              reader.onload = function () {
-                return resolve(reader.result);
-              };
-              reader.onerror = reject;
-              reader.readAsArrayBuffer(blob);
-            }));
-
-          case 1:
-          case 'end':
-            return _context.stop();
-        }
-      }
-    }, _callee, this);
-  }));
-
-  return function getData(_x, _x2) {
-    return _ref.apply(this, arguments);
-  };
-}();
-
-var _es6Promise = require('es6-promise');
-
-var _sparkMd = require('spark-md5');
-
-var _sparkMd2 = _interopRequireDefault(_sparkMd);
-
-var _debug = require('./debug');
-
-var _debug2 = _interopRequireDefault(_debug);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new _es6Promise.Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return _es6Promise.Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+import { Promise } from 'es6-promise';
+import SparkMD5 from 'spark-md5';
+import debug from './debug';
 
 function getChecksum(spark, chunk) {
   spark.append(chunk);
-  var state = spark.getState();
-  var checksum = spark.end();
+  const state = spark.getState();
+  const checksum = spark.end();
   spark.setState(state);
   return checksum;
 }
 
-var FileProcessor = function () {
-  function FileProcessor(file, chunkSize) {
-    var _this = this;
+async function getData(file, blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new window.FileReader();
 
-    _classCallCheck(this, FileProcessor);
+    reader.onload = () => resolve(reader.result);
 
-    this.waitForUnpause = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-      return regeneratorRuntime.wrap(function _callee2$(_context2) {
-        while (1) {
-          switch (_context2.prev = _context2.next) {
-            case 0:
-              return _context2.abrupt('return', new _es6Promise.Promise(function (resolve) {
-                _this.unpauseHandlers.push(resolve);
-              }));
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(blob);
+  });
+}
 
-            case 1:
-            case 'end':
-              return _context2.stop();
-          }
-        }
-      }, _callee2, _this);
-    }));
+class FileProcessor {
+  constructor(file, chunkSize) {
+    _defineProperty(this, "waitForUnpause", async () => {
+      return new Promise(resolve => {
+        this.unpauseHandlers.push(resolve);
+      });
+    });
 
     this.paused = false;
     this.file = file;
@@ -87,125 +37,54 @@ var FileProcessor = function () {
     this.unpauseHandlers = [];
   }
 
-  _createClass(FileProcessor, [{
-    key: 'run',
-    value: function () {
-      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(fn) {
-        var _this2 = this;
+  async run(fn, startIndex = 0, endIndex) {
+    const {
+      file,
+      chunkSize
+    } = this;
+    const totalChunks = Math.ceil(file.size / chunkSize);
+    const spark = new SparkMD5.ArrayBuffer();
+    debug('Starting run on file:');
+    debug(` - Total chunks: ${totalChunks}`);
+    debug(` - Start index: ${startIndex}`);
+    debug(` - End index: ${endIndex || totalChunks}`);
 
-        var startIndex = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-        var endIndex = arguments[2];
-        var file, chunkSize, totalChunks, spark, processIndex;
-        return regeneratorRuntime.wrap(function _callee4$(_context4) {
-          while (1) {
-            switch (_context4.prev = _context4.next) {
-              case 0:
-                file = this.file, chunkSize = this.chunkSize;
-                totalChunks = Math.ceil(file.size / chunkSize);
-                spark = new _sparkMd2.default.ArrayBuffer();
-
-
-                (0, _debug2.default)('Starting run on file:');
-                (0, _debug2.default)(' - Total chunks: ' + totalChunks);
-                (0, _debug2.default)(' - Start index: ' + startIndex);
-                (0, _debug2.default)(' - End index: ' + (endIndex || totalChunks));
-
-                processIndex = function () {
-                  var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(index) {
-                    var start, section, chunk, checksum, shouldContinue;
-                    return regeneratorRuntime.wrap(function _callee3$(_context3) {
-                      while (1) {
-                        switch (_context3.prev = _context3.next) {
-                          case 0:
-                            if (!(index === totalChunks || index === endIndex)) {
-                              _context3.next = 3;
-                              break;
-                            }
-
-                            (0, _debug2.default)('File process complete');
-                            return _context3.abrupt('return', true);
-
-                          case 3:
-                            if (!_this2.paused) {
-                              _context3.next = 6;
-                              break;
-                            }
-
-                            _context3.next = 6;
-                            return _this2.waitForUnpause();
-
-                          case 6:
-                            start = index * chunkSize;
-                            section = file.slice(start, start + chunkSize);
-                            _context3.next = 10;
-                            return getData(file, section);
-
-                          case 10:
-                            chunk = _context3.sent;
-                            checksum = getChecksum(spark, chunk);
-                            _context3.next = 14;
-                            return fn(checksum, index, chunk);
-
-                          case 14:
-                            shouldContinue = _context3.sent;
-
-                            if (!(shouldContinue !== false)) {
-                              _context3.next = 17;
-                              break;
-                            }
-
-                            return _context3.abrupt('return', processIndex(index + 1));
-
-                          case 17:
-                            return _context3.abrupt('return', false);
-
-                          case 18:
-                          case 'end':
-                            return _context3.stop();
-                        }
-                      }
-                    }, _callee3, _this2);
-                  }));
-
-                  return function processIndex(_x5) {
-                    return _ref4.apply(this, arguments);
-                  };
-                }();
-
-                _context4.next = 10;
-                return processIndex(startIndex);
-
-              case 10:
-              case 'end':
-                return _context4.stop();
-            }
-          }
-        }, _callee4, this);
-      }));
-
-      function run(_x3) {
-        return _ref3.apply(this, arguments);
+    const processIndex = async index => {
+      if (index === totalChunks || index === endIndex) {
+        debug('File process complete');
+        return true;
       }
 
-      return run;
-    }()
-  }, {
-    key: 'pause',
-    value: function pause() {
-      this.paused = true;
-    }
-  }, {
-    key: 'unpause',
-    value: function unpause() {
-      this.paused = false;
-      this.unpauseHandlers.forEach(function (fn) {
-        return fn();
-      });
-      this.unpauseHandlers = [];
-    }
-  }]);
+      if (this.paused) {
+        await this.waitForUnpause();
+      }
 
-  return FileProcessor;
-}();
+      const start = index * chunkSize;
+      const section = file.slice(start, start + chunkSize);
+      const chunk = await getData(file, section);
+      const checksum = getChecksum(spark, chunk);
+      const shouldContinue = await fn(checksum, index, chunk);
 
-exports.default = FileProcessor;
+      if (shouldContinue !== false) {
+        return processIndex(index + 1);
+      }
+
+      return false;
+    };
+
+    await processIndex(startIndex);
+  }
+
+  pause() {
+    this.paused = true;
+  }
+
+  unpause() {
+    this.paused = false;
+    this.unpauseHandlers.forEach(fn => fn());
+    this.unpauseHandlers = [];
+  }
+
+}
+
+export default FileProcessor;
