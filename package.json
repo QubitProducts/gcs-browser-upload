@@ -1,6 +1,6 @@
 {
   "name": "@cognite/gcs-browser-upload",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Resumable, chunked uploads to Google Cloud Storage from the browser",
   "main": "dist/Upload.js",
   "scripts": {
