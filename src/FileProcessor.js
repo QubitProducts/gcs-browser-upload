@@ -27,7 +27,7 @@ class FileProcessor {
   }
 
   waitForUnpause = async () => {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.unpauseHandlers.push(resolve);
     });
   };
@@ -42,7 +42,7 @@ class FileProcessor {
     debug(` - Start index: ${startIndex}`);
     debug(` - End index: ${endIndex || totalChunks}`);
 
-    const processIndex = async index => {
+    const processIndex = async (index) => {
       if (index === totalChunks || index === endIndex) {
         debug('File process complete');
         return true;
@@ -72,7 +72,7 @@ class FileProcessor {
 
   unpause() {
     this.paused = false;
-    this.unpauseHandlers.forEach(fn => fn());
+    this.unpauseHandlers.forEach((fn) => fn());
     this.unpauseHandlers = [];
   }
 }
