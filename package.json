@@ -1,6 +1,6 @@
 {
   "name": "@cognite/gcs-browser-upload",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Resumable, chunked uploads to Google Cloud Storage from the browser",
   "main": "dist/Upload.js",
   "scripts": {
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/qubitdigital/gcs-browser-upload.git"
+    "url": "https://github.com/cognitedata/gcs-browser-upload"
   },
   "author": "Qubit",
   "license": "MIT",
@@ -20,19 +20,37 @@
     "url": "https://github.com/qubitdigital/gcs-browser-upload/issues"
   },
   "homepage": "https://github.com/qubitdigital/gcs-browser-upload#readme",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "es6-error": "^4.1.1",
+    "es6-promise": "^4.2.8",
+    "spark-md5": "^3.0.0"
+  },
   "devDependencies": {
     "@babel/cli": "^7.10.1",
     "@babel/core": "^7.10.2",
     "@babel/plugin-proposal-class-properties": "^7.10.1",
     "@babel/plugin-proposal-object-rest-spread": "^7.10.1",
+    "@babel/plugin-transform-modules-commonjs": "^7.10.1",
+    "@cognite/eslint-config": "1.4.2",
+    "babel-eslint": "^10.1.0",
     "body-parser": "^1.15.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "chai-subset": "^1.2.2",
     "colors": "^1.1.2",
+    "debug": "^4.1.1",
     "eslint": "^7.2.0",
+    "eslint-config-airbnb": ">=18.0",
+    "eslint-config-prettier": ">=6",
     "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-import": ">=2.18",
+    "eslint-plugin-jest": ">=22.19",
+    "eslint-plugin-jsx-a11y": ">=6.2",
     "eslint-plugin-mocha": "^7.0.1",
+    "eslint-plugin-prettier": ">=3.1",
+    "eslint-plugin-react": ">=7.16",
+    "eslint-plugin-react-hooks": ">=1.7",
     "express": "^4.13.4",
     "filereader": "oliverwoodings/FileReader",
     "get-port": "^5.0.0",
@@ -40,29 +58,11 @@
     "mkdirp": "^1.0.4",
     "mocha": "^7.2.0",
     "pify": "^5.0.0",
+    "prettier": ">=1.18",
     "random-string": "^0.2.0",
     "sinon": "^9.0.2",
     "sinon-chai": "^3.3.0",
     "standard": "^14.3.1"
-  },
-  "dependencies": {
-    "@babel/plugin-transform-modules-commonjs": "^7.10.1",
-    "@cognite/eslint-config": "1.4.2",
-    "axios": "^0.21.1",
-    "babel-eslint": "^10.1.0",
-    "debug": "^4.1.1",
-    "es6-error": "^4.1.1",
-    "es6-promise": "^4.2.8",
-    "eslint-config-airbnb": ">=18.0",
-    "eslint-config-prettier": ">=6",
-    "eslint-plugin-import": ">=2.18",
-    "eslint-plugin-jest": ">=22.19",
-    "eslint-plugin-jsx-a11y": ">=6.2",
-    "eslint-plugin-prettier": ">=3.1",
-    "eslint-plugin-react": ">=7.16",
-    "eslint-plugin-react-hooks": ">=1.7",
-    "prettier": ">=1.18",
-    "spark-md5": "^3.0.0"
   },
   "files": [
     "dist",
