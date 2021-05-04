@@ -1,7 +1,6 @@
 import axios from 'axios'
 import express from 'express'
 import getPort from 'get-port'
-import pify from 'pify'
 import bodyParser from 'body-parser'
 
 let server = null
@@ -72,8 +71,10 @@ export async function start () {
   const port = await getPort()
   const app = express()
   app.use('/file', router)
-  server = await pify(::app.listen)(port)
-  axios.defaults.baseURL = `http://localhost:${port}`
+  app.listen(port, (err, s) => {
+    server = s
+    axios.defaults.baseURL = `http://localhost:${port}`
+  })
 }
 
 export function resetServer () {
