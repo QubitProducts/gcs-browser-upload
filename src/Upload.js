@@ -4,7 +4,7 @@ import FileProcessor from './FileProcessor';
 import debug from './debug';
 import * as errors from './errors';
 
-const MIN_CHUNK_SIZE = 262144;
+const MIN_CHUNK_SIZE = 256 * 1024;
 
 function checkResponseStatus(res, opts, allowed = []) {
   const { status } = res;
@@ -44,6 +44,25 @@ async function safePut(...args) {
       return e;
     }
   }
+}
+
+async function azurePutBlockList(url, checksums, contentType) {
+  const getXMLBody = () => {
+    const body = checksums
+        .map((hash) => `<Latest>${hash}</Latest>`)
+        .join('');
+    return `<?xml version="1.0" encoding="utf-8"?><BlockList>${body}</BlockList>`
+  };
+
+  await safePut(url, getXMLBody(), {
+    headers: {
+      'x-ms-blob-content-type': contentType,
+    },
+    validateStatus: () => true,
+    params: {
+      comp: 'blocklist',
+    }
+  });
 }
 
 export default class Upload {
@@ -87,6 +106,14 @@ export default class Upload {
     );
     this.processor = new FileProcessor(opts.file, opts.chunkSize);
     this.lastResult = null;
+
+    let url = new URL(opts.url);
+    if (url.searchParams.has('sig') &&
+        url.searchParams.has('se') &&
+        url.searchParams.has('sv')
+    ) {
+      this.isAzure = true;
+    }
   }
 
   async start() {
@@ -138,10 +165,20 @@ export default class Upload {
       debug(` - Start: ${start}`);
       debug(` - End: ${end}`);
 
-      const res = await safePut(opts.url, chunk, {
+      const requestOptions = {
         headers,
         validateStatus: () => true,
-      });
+      }
+      if (this.isAzure) {
+        Object.assign(requestOptions, {
+          params: {
+            comp: 'block',
+            blockid: checksum
+          }
+        })
+      }
+      const res = await safePut(opts.url, chunk, requestOptions);
+
       this.lastResult = res;
       checkResponseStatus(res, opts, [200, 201, 308]);
       debug(`Chunk upload succeeded, adding checksum ${checksum}`);
@@ -191,6 +228,15 @@ export default class Upload {
       debug('Upload not resumable, starting from scratch');
       await processor.run(uploadChunk);
     }
+
+    if (this.isAzure) {
+      await azurePutBlockList(
+          opts.url,
+          this.meta.getMeta().checksums,
+          this.opts.contentType
+      )
+    }
+
     debug('Upload complete, resetting meta');
     meta.reset();
     this.finished = true;
