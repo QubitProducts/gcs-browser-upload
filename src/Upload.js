@@ -107,13 +107,15 @@ export default class Upload {
     this.processor = new FileProcessor(opts.file, opts.chunkSize);
     this.lastResult = null;
 
-    let url = new URL(opts.url);
-    if (url.searchParams.has('sig') &&
-        url.searchParams.has('se') &&
-        url.searchParams.has('sv')
-    ) {
-      this.isAzure = true;
-    }
+    try {
+      let url = new URL(opts.url);
+      if (url.searchParams.has('sig') &&
+          url.searchParams.has('se') &&
+          url.searchParams.has('sv')
+      ) {
+        this.isAzure = true;
+      }
+    } catch {}
   }
 
   async start() {
