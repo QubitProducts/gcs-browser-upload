@@ -196,6 +196,7 @@ function checkResponseStatus (res, opts, allowed = []) {
 }
 
 async function safePut () {
+  console.log("safeput")
   try {
     return await put.apply(null, arguments)
   } catch (e) {
