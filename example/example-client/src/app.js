@@ -1,4 +1,4 @@
-import Upload from '../../../dist/Upload'
+import Upload from 'gcs-browser-upload';
 
 // https://googlecloudplatform.github.io/google-cloud-node/#/docs/storage/1.0.0/storage/file?method=createResumableUpload
 
