@@ -25,10 +25,11 @@ export default class Upload {
       chunkSize: MIN_CHUNK_SIZE,
       storage: window.localStorage,
       contentType: 'text/plain',
-      onChunkUpload: () => {},
+      onChunkUpload: () => { },
       id: null,
       url: null,
       file: null,
+      metadata: null,
       ...args
     }
 
@@ -49,7 +50,7 @@ export default class Upload {
     this.opts = opts
     this.meta = new FileMeta(opts.id, opts.file.size, opts.chunkSize, opts.storage)
     this.processor = new FileProcessor(opts.file, opts.chunkSize)
-    this.lastResult = null;
+    this.lastResult = null
   }
 
   async start () {
@@ -90,13 +91,19 @@ export default class Upload {
         'Content-Range': `bytes ${start}-${end}/${total}`
       }
 
+      if (index === 0 && opts.metadata) {
+        for (const h of Object.entries(opts.metadata)) {
+          headers[`x-goog-meta-${h[0]}`] = h[1]
+        }
+      }
+
       debug(`Uploading chunk ${index}:`)
       debug(` - Chunk length: ${chunk.byteLength}`)
       debug(` - Start: ${start}`)
       debug(` - End: ${end}`)
 
       const res = await safePut(opts.url, chunk, { headers })
-      this.lastResult = res;
+      this.lastResult = res
       checkResponseStatus(res, opts, [200, 201, 308])
       debug(`Chunk upload succeeded, adding checksum ${checksum}`)
       meta.addChecksum(index, checksum)
