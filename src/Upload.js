@@ -1,4 +1,4 @@
-import { put } from 'axios'
+import { put, post } from 'axios'
 import FileMeta from './FileMeta'
 import FileProcessor from './FileProcessor'
 import debug from './debug'
@@ -20,7 +20,7 @@ const MIN_CHUNK_SIZE = 262144
 export default class Upload {
   static errors = errors;
 
-  constructor (args, allowSmallChunks) {
+  constructor(args, allowSmallChunks) {
     var opts = {
       chunkSize: MIN_CHUNK_SIZE,
       storage: window.localStorage,
@@ -53,7 +53,7 @@ export default class Upload {
     this.lastResult = null
   }
 
-  async start () {
+  async start() {
     const { meta, processor, opts, finished } = this
 
     const resumeUpload = async () => {
@@ -88,11 +88,12 @@ export default class Upload {
 
       const headers = {
         'Content-Type': opts.contentType,
-        'Content-Range': `bytes ${start}-${end}/${total}`
+        'Content-Range': `bytes ${start}-${end}/${total}`,
+        'x-goog-resumable': 'start'
       }
 
-      if (index === 0 && opts.metadata) {
-        for (const h of Object.entries(opts.metadata)) {
+      if (opts.metadata) {
+        for (const h of (opts.metadata.entries ? opts.metadata.entries() : [])) {
           headers[`x-goog-meta-${h[0]}`] = h[1]
         }
       }
@@ -102,7 +103,7 @@ export default class Upload {
       debug(` - Start: ${start}`)
       debug(` - End: ${end}`)
 
-      const res = await safePut(opts.url, chunk, { headers })
+      const res = await safePut(opts.location ? opts.location : opts.url, chunk, { headers })
       this.lastResult = res
       checkResponseStatus(res, opts, [200, 201, 308])
       debug(`Chunk upload succeeded, adding checksum ${checksum}`)
@@ -149,6 +150,18 @@ export default class Upload {
       await resumeUpload()
     } else {
       debug('Upload not resumable, starting from scratch')
+      const headers = {
+        'x-goog-resumable': 'start',
+        'Content-Type': opts.contentType,
+      }
+
+      if (opts.metadata) {
+        for (const h of (opts.metadata.entries ? opts.metadata.entries() : [])) {
+          headers[`x-goog-meta-${h[0]}`] = h[1]
+        }
+      }
+      const res = await safePost(opts.url, null, { headers: headers });
+      opts.location = res.headers.location;
       await processor.run(uploadChunk)
     }
     debug('Upload complete, resetting meta')
@@ -157,24 +170,24 @@ export default class Upload {
     return this.lastResult
   }
 
-  pause () {
+  pause() {
     this.processor.pause()
     debug('Upload paused')
   }
 
-  unpause () {
+  unpause() {
     this.processor.unpause()
     debug('Upload unpaused')
   }
 
-  cancel () {
+  cancel() {
     this.processor.pause()
     this.meta.reset()
     debug('Upload cancelled')
   }
 }
 
-function checkResponseStatus (res, opts, allowed = []) {
+function checkResponseStatus(res, opts, allowed = []) {
   const { status } = res
   if (allowed.indexOf(status) > -1) {
     return true
@@ -202,9 +215,22 @@ function checkResponseStatus (res, opts, allowed = []) {
   }
 }
 
-async function safePut () {
+async function safePut() {
   try {
     return await put.apply(null, arguments)
+  } catch (e) {
+    if (e instanceof Error) {
+      throw e
+    } else {
+      return e
+    }
+  }
+}
+
+
+async function safePost() {
+  try {
+    return await post.apply(null, arguments)
   } catch (e) {
     if (e instanceof Error) {
       throw e

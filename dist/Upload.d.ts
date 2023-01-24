@@ -3,7 +3,12 @@ export interface IUploadOptions {
     chunkSize?: number;
     storage?: any;
     contentType?: string;
-    onChunkUpload?: (chunk: any) => Promise<any>;
+    onChunkUpload?: (chunk: {
+        totalBytes: number
+        uploadedBytes: number
+        chunkIndex: number
+        chunkLength: number
+    }) => Promise<any>;
     id?: string,
     url: string;
     file: File;

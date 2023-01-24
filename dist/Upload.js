@@ -49,6 +49,47 @@ var safePut = function () {
   };
 }();
 
+var safePost = function () {
+  var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7() {
+    var _args7 = arguments;
+    return regeneratorRuntime.wrap(function _callee7$(_context7) {
+      while (1) {
+        switch (_context7.prev = _context7.next) {
+          case 0:
+            _context7.prev = 0;
+            _context7.next = 3;
+            return _axios.post.apply(null, _args7);
+
+          case 3:
+            return _context7.abrupt('return', _context7.sent);
+
+          case 6:
+            _context7.prev = 6;
+            _context7.t0 = _context7['catch'](0);
+
+            if (!(_context7.t0 instanceof Error)) {
+              _context7.next = 12;
+              break;
+            }
+
+            throw _context7.t0;
+
+          case 12:
+            return _context7.abrupt('return', _context7.t0);
+
+          case 13:
+          case 'end':
+            return _context7.stop();
+        }
+      }
+    }, _callee7, this, [[0, 6]]);
+  }));
+
+  return function safePost() {
+    return _ref7.apply(this, arguments);
+  };
+}();
+
 var _axios = require('axios');
 
 var _FileMeta = require('./FileMeta');
@@ -91,7 +132,7 @@ var Upload = function () {
       file: null,
       metadata: null
     }, args);
-
+    console.log('opts', opts);
     if ((opts.chunkSize % MIN_CHUNK_SIZE !== 0 || opts.chunkSize === 0) && !allowSmallChunks) {
       throw new _errors.InvalidChunkSizeError(opts.chunkSize);
     }
@@ -118,7 +159,8 @@ var Upload = function () {
       var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
         var _this = this;
 
-        var meta, processor, opts, finished, resumeUpload, uploadChunk, validateChunk, getRemoteResumeIndex;
+        var meta, processor, opts, finished, resumeUpload, uploadChunk, validateChunk, getRemoteResumeIndex, headers, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, h, res;
+
         return regeneratorRuntime.wrap(function _callee5$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
@@ -199,10 +241,11 @@ var Upload = function () {
                             end = index * opts.chunkSize + chunk.byteLength - 1;
                             headers = {
                               'Content-Type': opts.contentType,
-                              'Content-Range': 'bytes ' + start + '-' + end + '/' + total
+                              'Content-Range': 'bytes ' + start + '-' + end + '/' + total,
+                              'x-goog-resumable': 'start'
                             };
 
-                            if (!(index === 0 && opts.metadata)) {
+                            if (!opts.metadata) {
                               _context2.next = 24;
                               break;
                             }
@@ -212,7 +255,7 @@ var Upload = function () {
                             _iteratorError = undefined;
                             _context2.prev = 8;
 
-                            for (_iterator = Object.entries(opts.metadata)[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                            for (_iterator = (opts.metadata.entries ? opts.metadata.entries() : [])[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
                               h = _step.value;
 
                               headers['x-goog-meta-' + h[0]] = h[1];
@@ -258,7 +301,7 @@ var Upload = function () {
                             (0, _debug2.default)(' - End: ' + end);
 
                             _context2.next = 30;
-                            return safePut(opts.url, chunk, { headers: headers });
+                            return safePut(opts.location ? opts.location : opts.url, chunk, { headers: headers });
 
                           case 30:
                             res = _context2.sent;
@@ -377,26 +420,87 @@ var Upload = function () {
                 return resumeUpload();
 
               case 11:
-                _context5.next = 16;
+                _context5.next = 41;
                 break;
 
               case 13:
                 (0, _debug2.default)('Upload not resumable, starting from scratch');
-                _context5.next = 16;
+                headers = {
+                  'x-goog-resumable': 'start',
+                  'Content-Type': opts.contentType
+                };
+
+                if (!opts.metadata) {
+                  _context5.next = 35;
+                  break;
+                }
+
+                _iteratorNormalCompletion2 = true;
+                _didIteratorError2 = false;
+                _iteratorError2 = undefined;
+                _context5.prev = 19;
+
+                for (_iterator2 = (opts.metadata.entries ? opts.metadata.entries() : [])[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                  h = _step2.value;
+
+                  headers['x-goog-meta-' + h[0]] = h[1];
+                }
+                _context5.next = 27;
+                break;
+
+              case 23:
+                _context5.prev = 23;
+                _context5.t0 = _context5['catch'](19);
+                _didIteratorError2 = true;
+                _iteratorError2 = _context5.t0;
+
+              case 27:
+                _context5.prev = 27;
+                _context5.prev = 28;
+
+                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                  _iterator2.return();
+                }
+
+              case 30:
+                _context5.prev = 30;
+
+                if (!_didIteratorError2) {
+                  _context5.next = 33;
+                  break;
+                }
+
+                throw _iteratorError2;
+
+              case 33:
+                return _context5.finish(30);
+
+              case 34:
+                return _context5.finish(27);
+
+              case 35:
+                _context5.next = 37;
+                return safePost(opts.url, null, { headers: headers });
+
+              case 37:
+                res = _context5.sent;
+
+                opts.location = res.headers.location;
+                _context5.next = 41;
                 return processor.run(uploadChunk);
 
-              case 16:
+              case 41:
                 (0, _debug2.default)('Upload complete, resetting meta');
                 meta.reset();
                 this.finished = true;
                 return _context5.abrupt('return', this.lastResult);
 
-              case 20:
+              case 45:
               case 'end':
                 return _context5.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee5, this, [[19, 23, 27, 35], [28,, 30, 34]]);
       }));
 
       function start() {
