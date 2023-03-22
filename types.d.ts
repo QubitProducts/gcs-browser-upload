@@ -49,30 +49,30 @@ declare module "gcs-browser-upload" {
   }
 
   namespace UploadErrors {
-    declare class DifferentChunkError extends Error {
+    class DifferentChunkError extends Error {
       constructor(
         chunkIndex: number,
         originalChecksum: string,
         newChecksum: string
       )
     }
-    declare class FileAlreadyUploadedError {
+    class FileAlreadyUploadedError {
       constructor(id: string, url: string)
     }
-    declare class UrlNotFoundError {
+    class UrlNotFoundError {
       constructor(url: string)
     }
-    declare class UploadFailedError {
+    class UploadFailedError {
       constructor(status: number)
     }
-    declare class UnknownResponseError {
+    class UnknownResponseError {
       constructor(res: unknown)
     }
-    declare class MissingOptionsError {}
-    declare class UploadIncompleteError {}
-    declare class InvalidChunkSizeError {
+    class MissingOptionsError {}
+    class UploadIncompleteError {}
+    class InvalidChunkSizeError {
       constructor(chunkSize: number)
     }
-    declare class UploadAlreadyFinishedError {}
+    class UploadAlreadyFinishedError {}
   }
 }
