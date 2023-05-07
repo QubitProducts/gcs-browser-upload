@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/qubitdigital/gcs-browser-upload#readme",
   "dependencies": {
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "es6-error": "^4.1.1",
     "es6-promise": "^4.2.8",
     "spark-md5": "^3.0.0"
