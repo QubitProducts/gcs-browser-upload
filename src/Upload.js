@@ -49,6 +49,36 @@ async function safePut(...args) {
   }
 }
 
+const CloudVendors = {
+  AWS: 0,
+  Azure: 1,
+  GCP: 2,
+}
+
+function getCloudVendor(uploadUrl) {
+  // Default vendor is GCP
+  let cloudVendor = CloudVendors.GCP;
+
+  try {
+    const url = new URL(uploadUrl);
+    if (
+      url.searchParams.has('sig') &&
+      url.searchParams.has('se') &&
+      url.searchParams.has('sv')
+    ) {
+      cloudVendor = CloudVendors.Azure;
+    } else if (
+      url.searchParams.has('X-Amz-Security-Token') &&
+      url.searchParams.has('X-Amz-Signature')
+    ) {
+      cloudVendor = CloudVendors.AWS;
+    }
+  } catch {
+    /* empty, will use default (GCP) */
+  }
+  return cloudVendor;
+}
+
 async function azurePutBlockList(url, checksums, contentType) {
   const getXMLBody = () => {
     const body = checksums.map((hash) => `<Latest>${hash}</Latest>`).join('');
@@ -68,6 +98,8 @@ async function azurePutBlockList(url, checksums, contentType) {
 
 export default class Upload {
   static errors = errors;
+  cloudVendor = this.cloudVendor.GCP;
+  useSinglePut = false;
 
   constructor(args, allowSmallChunks) {
     const opts = {
@@ -81,10 +113,14 @@ export default class Upload {
       ...args,
     };
 
-    if (
+    cloudVendor = getCloudVendor(opts.url);
+    if (cloudVendor === CloudVendors.AWS) {
+      useSinglePut = true;
+    }
+
+    if (!useSinglePut &&
       (opts.chunkSize % MIN_CHUNK_SIZE !== 0 || opts.chunkSize === 0) &&
-      !allowSmallChunks
-    ) {
+      !allowSmallChunks) {
       throw new errors.InvalidChunkSizeError(opts.chunkSize);
     }
 
@@ -105,21 +141,11 @@ export default class Upload {
       opts.chunkSize,
       opts.storage
     );
-    this.processor = new FileProcessor(opts.file, opts.chunkSize);
-    this.lastResult = null;
 
-    try {
-      let url = new URL(opts.url);
-      if (
-        url.searchParams.has('sig') &&
-        url.searchParams.has('se') &&
-        url.searchParams.has('sv')
-      ) {
-        this.isAzure = true;
-      }
-    } catch {
-      /* empty */
+    if (!this.useSinglePut) {
+      this.processor = new FileProcessor(opts.file, opts.chunkSize);
     }
+    this.lastResult = null;
   }
 
   async start() {
@@ -156,6 +182,27 @@ export default class Upload {
       }
     };
 
+    const uploadSinglePut = async () => {
+      const headers = {
+        'Content-Type': opts.contentType,
+        'Content-Length': opts.file.size,
+      };
+
+      const requestOptions = {
+        headers,
+        validateStatus: () => true,
+      };
+
+      const section = opts.file.slice();
+      const fileData = await FileProcessor.getData(null, section);
+      const res = await safePut(opts.url, fileData, requestOptions);
+
+      this.lastResult = res;
+      checkResponseStatus(res, opts, [200, 201]);
+
+      debug(`File upload succeeded`);
+    };
+
     const uploadChunk = async (checksum, index, chunk) => {
       const total = opts.file.size;
       const start = index * opts.chunkSize;
@@ -175,7 +222,7 @@ export default class Upload {
         headers,
         validateStatus: () => true,
       };
-      if (this.isAzure) {
+      if (this.cloudVendor == CloudVendors.Azure) {
         Object.assign(requestOptions, {
           params: {
             comp: 'block',
@@ -227,7 +274,10 @@ export default class Upload {
       throw new errors.UploadAlreadyFinishedError();
     }
 
-    if (meta.isResumable() && meta.getFileSize() === opts.file.size) {
+    if (this.useSinglePut) {
+      debug('Upload with single PUT');
+      await uploadSinglePut();
+    } else if (meta.isResumable() && meta.getFileSize() === opts.file.size) {
       debug('Upload might be resumable');
       await resumeUpload();
     } else {
@@ -235,7 +285,7 @@ export default class Upload {
       await processor.run(uploadChunk);
     }
 
-    if (this.isAzure) {
+    if (this.cloudVendor == CloudVendors.Azure) {
       await azurePutBlockList(
         opts.url,
         this.meta.getMeta().checksums,
@@ -250,18 +300,24 @@ export default class Upload {
   }
 
   pause() {
-    this.processor.pause();
-    debug('Upload paused');
+    if (this.processor) {
+      this.processor.pause();
+      debug('Upload paused');
+    }
   }
 
   unpause() {
-    this.processor.unpause();
-    debug('Upload unpaused');
+    if (this.processor) {
+      this.processor.unpause();
+      debug('Upload unpaused');
+    }
   }
 
   cancel() {
-    this.processor.pause();
-    this.meta.reset();
-    debug('Upload cancelled');
+    if (this.processor) {
+      this.processor.pause();
+      this.meta.reset();
+      debug('Upload cancelled');
+    }
   }
 }
