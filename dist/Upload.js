@@ -72,23 +72,17 @@ async function safePut(...args) {
   }
 }
 
-const CloudVendors = {
-  AWS: 0,
-  Azure: 1,
-  GCP: 2
-};
-
 function getCloudVendor(uploadUrl) {
   // Default vendor is GCP
-  let cloudVendor = CloudVendors.GCP;
+  let cloudVendor = 'gcp';
 
   try {
     const url = new URL(uploadUrl);
 
     if (url.searchParams.has('sig') && url.searchParams.has('se') && url.searchParams.has('sv')) {
-      cloudVendor = CloudVendors.Azure;
+      cloudVendor = 'azure';
     } else if (url.searchParams.has('X-Amz-Security-Token') && url.searchParams.has('X-Amz-Signature')) {
-      cloudVendor = CloudVendors.AWS;
+      cloudVendor = 'aws';
     }
   } catch {
     /* empty, will use default (GCP) */
@@ -116,7 +110,7 @@ async function azurePutBlockList(url, checksums, contentType) {
 
 class Upload {
   constructor(args, allowSmallChunks) {
-    _defineProperty(this, "cloudVendor", this.CloudVendors.GCP);
+    _defineProperty(this, "cloudVendor", 'gcp');
 
     _defineProperty(this, "useSinglePut", false);
 
@@ -132,7 +126,7 @@ class Upload {
 
     this.cloudVendor = getCloudVendor(opts.url);
 
-    if (this.cloudVendor === CloudVendors.AWS) {
+    if (this.cloudVendor === 'aws') {
       this.useSinglePut = true;
     }
 
@@ -228,7 +222,7 @@ class Upload {
         validateStatus: () => true
       };
 
-      if (this.cloudVendor === CloudVendors.Azure) {
+      if (this.cloudVendor === 'azure') {
         Object.assign(requestOptions, {
           params: {
             comp: 'block',
@@ -288,7 +282,7 @@ class Upload {
       await processor.run(uploadChunk);
     }
 
-    if (this.cloudVendor === CloudVendors.Azure) {
+    if (this.cloudVendor === 'azure') {
       await azurePutBlockList(opts.url, this.meta.getMeta().checksums, this.opts.contentType);
     }
 
