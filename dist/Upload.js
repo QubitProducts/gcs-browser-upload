@@ -116,7 +116,7 @@ async function azurePutBlockList(url, checksums, contentType) {
 
 class Upload {
   constructor(args, allowSmallChunks) {
-    _defineProperty(this, "cloudVendor", this.cloudVendor.GCP);
+    _defineProperty(this, "cloudVendor", this.CloudVendors.GCP);
 
     _defineProperty(this, "useSinglePut", false);
 
