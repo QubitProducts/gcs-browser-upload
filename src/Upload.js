@@ -1,3 +1,6 @@
+/* eslint-disable lodash/prefer-noop */
+/* eslint-disable @typescript-eslint/no-empty-function */
+/* eslint-disable testing-library/no-debugging-utils */
 import { put } from 'axios';
 import FileMeta from './FileMeta';
 import FileProcessor from './FileProcessor';
@@ -8,7 +11,7 @@ const MIN_CHUNK_SIZE = 256 * 1024;
 
 function checkResponseStatus(res, opts, allowed = []) {
   const { status } = res;
-  if (allowed.indexOf(status) > -1) {
+  if (allowed.includes(status)) {
     return true;
   }
 
@@ -48,10 +51,8 @@ async function safePut(...args) {
 
 async function azurePutBlockList(url, checksums, contentType) {
   const getXMLBody = () => {
-    const body = checksums
-        .map((hash) => `<Latest>${hash}</Latest>`)
-        .join('');
-    return `<?xml version="1.0" encoding="utf-8"?><BlockList>${body}</BlockList>`
+    const body = checksums.map((hash) => `<Latest>${hash}</Latest>`).join('');
+    return `<?xml version="1.0" encoding="utf-8"?><BlockList>${body}</BlockList>`;
   };
 
   await safePut(url, getXMLBody(), {
@@ -61,7 +62,7 @@ async function azurePutBlockList(url, checksums, contentType) {
     validateStatus: () => true,
     params: {
       comp: 'blocklist',
-    }
+    },
   });
 }
 
@@ -109,13 +110,16 @@ export default class Upload {
 
     try {
       let url = new URL(opts.url);
-      if (url.searchParams.has('sig') &&
-          url.searchParams.has('se') &&
-          url.searchParams.has('sv')
+      if (
+        url.searchParams.has('sig') &&
+        url.searchParams.has('se') &&
+        url.searchParams.has('sv')
       ) {
         this.isAzure = true;
       }
-    } catch {}
+    } catch {
+      /* empty */
+    }
   }
 
   async start() {
@@ -170,14 +174,14 @@ export default class Upload {
       const requestOptions = {
         headers,
         validateStatus: () => true,
-      }
+      };
       if (this.isAzure) {
         Object.assign(requestOptions, {
           params: {
             comp: 'block',
-            blockid: checksum
-          }
-        })
+            blockid: checksum,
+          },
+        });
       }
       const res = await safePut(opts.url, chunk, requestOptions);
 
@@ -233,10 +237,10 @@ export default class Upload {
 
     if (this.isAzure) {
       await azurePutBlockList(
-          opts.url,
-          this.meta.getMeta().checksums,
-          this.opts.contentType
-      )
+        opts.url,
+        this.meta.getMeta().checksums,
+        this.opts.contentType
+      );
     }
 
     debug('Upload complete, resetting meta');
