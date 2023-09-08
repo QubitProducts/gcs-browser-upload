@@ -96,7 +96,7 @@ async function azurePutBlockList(url, checksums, contentType) {
 export default class Upload {
   static errors = errors;
 
-  cloudVendor = this.cloudVendor.GCP;
+  cloudVendor = this.CloudVendors.GCP;
 
   useSinglePut = false;
 
