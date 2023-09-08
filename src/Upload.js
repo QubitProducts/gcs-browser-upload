@@ -1,6 +1,3 @@
-/* eslint-disable lodash/prefer-noop */
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable testing-library/no-debugging-utils */
 import { put } from 'axios';
 import FileMeta from './FileMeta';
 import FileProcessor from './FileProcessor';
@@ -53,7 +50,7 @@ const CloudVendors = {
   AWS: 0,
   Azure: 1,
   GCP: 2,
-}
+};
 
 function getCloudVendor(uploadUrl) {
   // Default vendor is GCP
@@ -98,7 +95,9 @@ async function azurePutBlockList(url, checksums, contentType) {
 
 export default class Upload {
   static errors = errors;
+
   cloudVendor = this.cloudVendor.GCP;
+
   useSinglePut = false;
 
   constructor(args, allowSmallChunks) {
@@ -113,14 +112,16 @@ export default class Upload {
       ...args,
     };
 
-    cloudVendor = getCloudVendor(opts.url);
-    if (cloudVendor === CloudVendors.AWS) {
-      useSinglePut = true;
+    this.cloudVendor = getCloudVendor(opts.url);
+    if (this.cloudVendor === CloudVendors.AWS) {
+      this.useSinglePut = true;
     }
 
-    if (!useSinglePut &&
+    if (
+      !this.useSinglePut &&
       (opts.chunkSize % MIN_CHUNK_SIZE !== 0 || opts.chunkSize === 0) &&
-      !allowSmallChunks) {
+      !allowSmallChunks
+    ) {
       throw new errors.InvalidChunkSizeError(opts.chunkSize);
     }
 
@@ -222,7 +223,7 @@ export default class Upload {
         headers,
         validateStatus: () => true,
       };
-      if (this.cloudVendor == CloudVendors.Azure) {
+      if (this.cloudVendor === CloudVendors.Azure) {
         Object.assign(requestOptions, {
           params: {
             comp: 'block',
@@ -285,7 +286,7 @@ export default class Upload {
       await processor.run(uploadChunk);
     }
 
-    if (this.cloudVendor == CloudVendors.Azure) {
+    if (this.cloudVendor === CloudVendors.Azure) {
       await azurePutBlockList(
         opts.url,
         this.meta.getMeta().checksums,
