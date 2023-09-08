@@ -198,7 +198,14 @@ class Upload {
         validateStatus: () => true
       };
       const section = opts.file.slice();
-      const fileData = await _FileProcessor.default.getData(null, section);
+      const fileData = await new Promise((resolve, reject) => {
+        const reader = new window.FileReader();
+
+        reader.onload = () => resolve(reader.result);
+
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(section);
+      });
       const res = await safePut(opts.url, fileData, requestOptions);
       this.lastResult = res;
       checkResponseStatus(res, opts, [200, 201]);

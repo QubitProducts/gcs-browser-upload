@@ -189,7 +189,13 @@ export default class Upload {
       };
 
       const section = opts.file.slice();
-      const fileData = await FileProcessor.getData(null, section);
+      const fileData = await new Promise((resolve, reject) => {
+        const reader = new window.FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(section);
+      });
+
       const res = await safePut(opts.url, fileData, requestOptions);
 
       this.lastResult = res;
