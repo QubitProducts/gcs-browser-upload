@@ -47,27 +47,28 @@ async function safePut(...args) {
 }
 
 function getCloudVendor(uploadUrl) {
-  // Default vendor is GCP
-  let cloudVendor = 'gcp';
-
   try {
     const url = new URL(uploadUrl);
+
     if (
       url.searchParams.has('sig') &&
       url.searchParams.has('se') &&
       url.searchParams.has('sv')
     ) {
-      cloudVendor = 'azure';
-    } else if (
+      return 'azure';
+    }
+
+    if (
       url.searchParams.has('X-Amz-Security-Token') &&
       url.searchParams.has('X-Amz-Signature')
     ) {
-      cloudVendor = 'aws';
+      return 'aws';
     }
   } catch {
     /* empty, will use default (GCP) */
   }
-  return cloudVendor;
+
+  return 'gcp';
 }
 
 async function azurePutBlockList(url, checksums, contentType) {
