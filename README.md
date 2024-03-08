@@ -1,3 +1,6 @@
+# ⚠️ This repo is archived and no longer maintained.
+The code has been migrated to the [Fusion repo](https://github.com/cognitedata/fusion/tree/master/libs/shared/gcs-browser-upload)
+
 # gcs-browser-upload [ ![Codeship Status for qubitdigital/gcs-browser-upload](https://codeship.com/projects/cc1d14a0-d19a-0133-39c4-66c9b913d1be/status?branch=master)](https://codeship.com/projects/141578)
 
 Chunked, pausable, recoverable uploading to Google Cloud Storage directly from the browser.
